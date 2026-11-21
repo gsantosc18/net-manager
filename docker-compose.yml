@@ -6,25 +6,27 @@ services:
     restart: unless-stopped
     ports:
       - "8010:8000"
+    volumes:
+      - ./monitor:/app
     cap_add:
       - NET_RAW
     environment:
       - METRICS_PORT=8000
-      - WAN1_NAME=Operadora 1
-      - WAN1_TARGET=8.8.8.8
-      - WAN2_NAME=Operadora 2
-      - WAN2_TARGET=8.8.4.4
-      - PING_INTERVAL=10
-      - PING_COUNT=5
-      - SPEEDTEST_INTERVAL=1800
+      - WAN1_NAME=${WAN1_NAME:-Operadora 1}
+      - WAN1_TARGET=${WAN1_TARGET:-9.9.9.9}
+      - WAN2_NAME=${WAN2_NAME:-Operadora 2}
+      - WAN2_TARGET=${WAN2_TARGET:-149.112.112.112}
+      - PING_INTERVAL=${PING_INTERVAL:-10}
+      - PING_COUNT=${PING_COUNT:-5}
+      - SPEEDTEST_INTERVAL=${SPEEDTEST_INTERVAL:-1800}
       - FLAPPING_MIN_SCORE_DIFF=5.0
       - FLAPPING_CONFIRM_CYCLES=3
-      - ER605_HOST=192.168.10.1
-      - ER605_USER=myhouse
-      - ER605_PASS=24865310@Asd
-      - FAILOVER_ENABLED=true
-      - FAILOVER_INTERVAL=3600
-      - EMERGENCY_FAILOVER=true
+      - ER605_HOST=${ER605_HOST:-192.168.10.1}
+      - ER605_USER=${ER605_USER:-myhouse}
+      - ER605_PASS=${ER605_PASS:-24865310@Asd}
+      - FAILOVER_ENABLED=${FAILOVER_ENABLED:-true}
+      - FAILOVER_INTERVAL=${FAILOVER_INTERVAL:-3600}
+      - EMERGENCY_FAILOVER=${EMERGENCY_FAILOVER:-true}
     networks:
       - net-monitor-network
 
@@ -56,10 +58,17 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_USERS_ALLOW_SIGN_UP=false
-      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/var/lib/grafana/dashboards/isp_monitor.json
+      - GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH=/tmp/dashboards/isp_monitor.json
+      - GF_PANELS_DISABLE_SANITIZE_HTML=true
+      - WAN1_NAME=${WAN1_NAME:-Operadora 1}
+      - WAN2_NAME=${WAN2_NAME:-Operadora 2}
+    entrypoint:
+      - "sh"
+      - "-c"
+      - "mkdir -p /tmp/dashboards && sed -e \"s/__WAN1_NAME__/$${WAN1_NAME:-Operadora 1}/g\" -e \"s/__WAN2_NAME__/$${WAN2_NAME:-Operadora 2}/g\" /etc/grafana/dashboards-template/isp_monitor.json > /tmp/dashboards/isp_monitor.json && exec /run.sh"
     volumes:
       - ./grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards-template:ro
       - grafana_data:/var/lib/grafana
     depends_on:
       - prometheus

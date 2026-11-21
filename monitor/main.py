@@ -1,14 +1,76 @@
 import logging
 import time
 import threading
+import json
+from http.server import HTTPServer, BaseHTTPRequestHandler
 import schedule
-from prometheus_client import start_http_server, Gauge, Counter
+from prometheus_client import Gauge, Counter, generate_latest, CONTENT_TYPE_LATEST
 from config import config
 from ping_collector import measure_ping
 from scorer import HealthScorer
 from speedtest_collector import SpeedtestManager
 
 from er605_controller import ER605Controller
+
+class MonitorHttpHandler(BaseHTTPRequestHandler):
+    """Manipulador HTTP para métricas Prometheus e API de controle manual"""
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "*")
+        self.end_headers()
+
+    def do_GET(self):
+        if self.path == "/metrics":
+            data = generate_latest()
+            self.send_response(200)
+            self.send_header("Content-Type", CONTENT_TYPE_LATEST)
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(data)
+        elif self.path in ("/api/speedtest/run", "/speedtest/run"):
+            self.handle_speedtest_trigger()
+        elif self.path in ("/api/evaluation/run", "/evaluation/run", "/api/failover/run"):
+            self.handle_evaluation_trigger()
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def do_POST(self):
+        if self.path in ("/api/speedtest/run", "/speedtest/run"):
+            self.handle_speedtest_trigger()
+        elif self.path in ("/api/evaluation/run", "/evaluation/run", "/api/failover/run"):
+            self.handle_evaluation_trigger()
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def handle_speedtest_trigger(self):
+        logger.info("⚡ [API] Disparo manual de speedtest recebido!")
+        speedtest_mgr.run_all_async()
+        body = json.dumps({
+            "status": "started",
+            "message": "Teste de velocidade disparado com sucesso para ambas as conexões!"
+        }).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def handle_evaluation_trigger(self):
+        logger.info("⚖️ [API] Disparo manual de avaliação de qualidade e rota recebido!")
+        result = run_hourly_failover_job(is_manual=True)
+        body = json.dumps(result).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def log_message(self, format, *args):
+        pass
 
 logging.basicConfig(
     level=logging.INFO,
@@ -135,44 +197,59 @@ def run_ping_cycle():
             else:
                 active_wan_consecutive_failures = 0
 
-def run_hourly_failover_job():
-    """Executado a cada 1 hora para comutar o tráfego para a melhor operadora"""
+def run_hourly_failover_job(is_manual: bool = False) -> dict:
+    """Executado a cada 1 hora ou manualmente via API para comutar o tráfego para a melhor operadora"""
     global last_hourly_eval_time, current_active_router_wan
     last_hourly_eval_time = time.time()
+    tag = "AVALIAÇÃO MANUAL" if is_manual else "AVALIAÇÃO HORÁRIA"
     
     if not config.failover_enabled:
-        logger.info("[FAILOVER 1H] Failover desativado por configuração. Apenas monitorando.")
-        return
+        msg = "Failover desativado por configuração. Apenas monitorando."
+        logger.info(f"[{tag}] {msg}")
+        return {"status": "skipped", "message": msg, "active_wan": current_active_router_wan}
         
     recommended = scorer.current_recommended_primary
     if not recommended:
-        logger.warning("[FAILOVER 1H] Sem dados suficientes para decisão horária.")
-        return
+        msg = "Sem dados suficientes coletados ainda para decisão."
+        logger.warning(f"[{tag}] {msg}")
+        return {"status": "warning", "message": msg, "active_wan": current_active_router_wan}
         
+    active_wan_obj = config.wans.get(current_active_router_wan)
+    active_name = active_wan_obj.name if active_wan_obj else current_active_router_wan.upper()
+    
+    rec_wan_obj = config.wans.get(recommended)
+    rec_name = rec_wan_obj.name if rec_wan_obj else recommended.upper()
+
     logger.info(
-        f"⏰ [AVALIAÇÃO HORÁRIA] Analisando tráfego... "
-        f"Ativa no Roteador: {current_active_router_wan.upper()} | Melhor Operadora: {recommended.upper()}"
+        f"⏰ [{tag}] Analisando tráfego... "
+        f"Ativa no Roteador: {active_name} ({current_active_router_wan.upper()}) | "
+        f"Melhor Operadora: {rec_name} ({recommended.upper()})"
     )
     
     if recommended != current_active_router_wan:
         logger.warning(
-            f"⚡ [FAILOVER 1H] A {recommended.upper()} está com nota superior. "
-            f"Comutando rota principal no ER605 de {current_active_router_wan.upper()} para {recommended.upper()}..."
+            f"⚡ [{tag}] A {rec_name} está com nota superior. "
+            f"Comutando rota principal no ER605 de {active_name} para {rec_name}..."
         )
         if er605.set_primary_wan(recommended):
             COUNTER_FAILOVER_EXECUTED.labels(
                 from_wan=current_active_router_wan,
                 to_wan=recommended,
-                reason="hourly_best_score"
+                reason="manual_eval" if is_manual else "hourly_best_score"
             ).inc()
+            previous_wan = current_active_router_wan
             current_active_router_wan = recommended
-            logger.info(f"✅ [FAILOVER 1H] Conexão comutada com sucesso para {recommended.upper()}!")
+            msg = f"Conexão comutada no roteador para {rec_name} ({recommended.upper()}) com sucesso!"
+            logger.info(f"✅ [{tag}] {msg}")
+            return {"status": "switched", "message": msg, "from_wan": previous_wan, "to_wan": recommended, "wan_name": rec_name}
         else:
-            logger.error(f"❌ [FAILOVER 1H] Falha ao comutar no ER605.")
+            msg = f"Falha ao comutar rota no ER605 para {rec_name}."
+            logger.error(f"❌ [{tag}] {msg}")
+            return {"status": "error", "message": msg, "active_wan": current_active_router_wan}
     else:
-        logger.info(
-            f"✨ [FAILOVER 1H] A conexão {current_active_router_wan.upper()} continua sendo a melhor. Mantendo sem interrupções."
-        )
+        msg = f"A conexão {active_name} continua com melhor qualidade. Rota mantida sem alterações."
+        logger.info(f"✨ [{tag}] {msg}")
+        return {"status": "maintained", "message": msg, "active_wan": current_active_router_wan, "wan_name": active_name}
 
 def run_speedtest_cycle():
     """Executa o teste de velocidade para ambas as operadoras"""
@@ -186,7 +263,6 @@ def delayed_initial_speedtest():
 def init_router_state():
     global current_active_router_wan
     try:
-        er605.ensure_online_detection_always_on()
         active = er605.get_active_primary_wan()
         if active:
             current_active_router_wan = active
@@ -195,8 +271,9 @@ def init_router_state():
         logger.warning(f"Não foi possível obter estado inicial do ER605: {ex}")
 
 def main():
-    logger.info(f"Iniciando servidor de métricas Prometheus na porta {config.port}...")
-    start_http_server(config.port)
+    logger.info(f"Iniciando servidor HTTP e métricas Prometheus na porta {config.port}...")
+    server = HTTPServer(("0.0.0.0", config.port), MonitorHttpHandler)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
     
     init_router_state()
     run_ping_cycle()

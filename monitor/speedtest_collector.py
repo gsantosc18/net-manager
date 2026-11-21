@@ -7,8 +7,30 @@ logger = logging.getLogger("speedtest_collector")
 
 # Mapeamento do servidor dedicado para cada WAN (roteado por Policy Routing no ER605)
 WAN_SPEEDTEST_SERVERS = {
-    "wan1": 67907,  # JEJ NET (IP: 170.80.45.0 -> Forçado pela WAN 1)
-    "wan2": 72174   # Delta Telecom (IP: 131.221.248.194 -> Forçado pela WAN 2)
+    "wan1": {
+        "url": "http://velocimetro-blm.virtua.com.br:8080/speedtest/upload.php",
+        "lat": "-1.4558",
+        "lon": "-48.5039",
+        "name": "Belém",
+        "country": "Brazil",
+        "cc": "BR",
+        "sponsor": "Claro Fibra - BLM",
+        "id": "21853",
+        "host": "velocimetro-blm.virtua.com.br:8080",
+        "d": 0.0
+    },
+    "wan2": {
+        "url": "http://speedtest.lusotec.com.br:8080/speedtest/upload.php",
+        "lat": "-1.4558",
+        "lon": "-48.5039",
+        "name": "Belém",
+        "country": "Brazil",
+        "cc": "BR",
+        "sponsor": "Movih Telecom",
+        "id": "66188",
+        "host": "speedtest.lusotec.com.br:8080",
+        "d": 0.0
+    }
 }
 
 class SpeedtestResult:
@@ -37,19 +59,21 @@ class SpeedtestManager:
             self.is_running = True
 
         try:
-            for wan_id, server_id in WAN_SPEEDTEST_SERVERS.items():
-                self._measure_single_wan(wan_id, server_id)
+            for wan_id, server_info in WAN_SPEEDTEST_SERVERS.items():
+                self._measure_single_wan(wan_id, server_info)
                 time.sleep(2)
         finally:
             with self._lock:
                 self.is_running = False
 
-    def _measure_single_wan(self, wan_id: str, server_id: int):
-        logger.info(f"Iniciando teste de velocidade para {wan_id.upper()} usando servidor dedicado ID {server_id}...")
+    def _measure_single_wan(self, wan_id: str, server_info: dict):
+        logger.info(f"Iniciando teste de velocidade para {wan_id.upper()} usando servidor dedicado {server_info['sponsor']} ({server_info['host']})...")
         try:
             import speedtest
             s = speedtest.Speedtest()
-            s.get_servers([server_id])
+            s.get_config()
+            s.servers = {0.0: [server_info]}
+            s.get_best_server()
             
             # Download
             s.download()
