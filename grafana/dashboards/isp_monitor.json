@@ -1,0 +1,309 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "Status e Conexão Principal",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DESCONECTADA" }, "1": { "color": "green", "text": "CONECTADA" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "id": 1,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "auto" },
+      "targets": [{ "expr": "isp_probe_available{wan=\"wan1\"}", "legendFormat": "Status", "refId": "A" }],
+      "title": "Operadora 1 (WAN 1)",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 65 },
+              { "color": "green", "value": 85 }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "id": 2,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }, "showThresholdLabels": false, "showThresholdMarkers": true },
+      "targets": [{ "expr": "isp_health_score{wan=\"wan1\"}", "legendFormat": "Nota", "refId": "A" }],
+      "title": "Operadora 1 - Nota de Qualidade",
+      "type": "gauge"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "red", "text": "DESCONECTADA" }, "1": { "color": "green", "text": "CONECTADA" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "id": 3,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "auto" },
+      "targets": [{ "expr": "isp_probe_available{wan=\"wan2\"}", "legendFormat": "Status", "refId": "A" }],
+      "title": "Operadora 2 (WAN 2)",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 65 },
+              { "color": "green", "value": 85 }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "id": 4,
+      "options": { "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"] }, "showThresholdLabels": false, "showThresholdMarkers": true },
+      "targets": [{ "expr": "isp_health_score{wan=\"wan2\"}", "legendFormat": "Nota", "refId": "A" }],
+      "title": "Operadora 2 - Nota de Qualidade",
+      "type": "gauge"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [
+            { "options": { "0": { "color": "text", "text": "Operadora 2 (Melhor)" }, "1": { "color": "blue", "text": "Operadora 1 (Melhor)" } }, "type": "value" }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 1 },
+      "id": 5,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "auto" },
+      "targets": [{ "expr": "isp_recommended_primary{wan=\"wan1\"}", "legendFormat": "Recomendada", "refId": "A" }],
+      "title": "Melhor Conexão no Momento",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 102,
+      "title": "Velocidade Real das Conexões (Download e Upload)",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "unit": "Mbps"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 6 },
+      "id": 20,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "textMode": "auto" },
+      "targets": [{ "expr": "isp_download_mbps{wan=\"wan1\"}", "legendFormat": "Download", "refId": "A" }],
+      "title": "Operadora 1 - Download",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          },
+          "unit": "Mbps"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 6 },
+      "id": 21,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "textMode": "auto" },
+      "targets": [{ "expr": "isp_upload_mbps{wan=\"wan1\"}", "legendFormat": "Upload", "refId": "A" }],
+      "title": "Operadora 1 - Upload",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "unit": "Mbps"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 6 },
+      "id": 22,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "textMode": "auto" },
+      "targets": [{ "expr": "isp_download_mbps{wan=\"wan2\"}", "legendFormat": "Download", "refId": "A" }],
+      "title": "Operadora 2 - Download",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          },
+          "unit": "Mbps"
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 6 },
+      "id": 23,
+      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "textMode": "auto" },
+      "targets": [{ "expr": "isp_upload_mbps{wan=\"wan2\"}", "legendFormat": "Upload", "refId": "A" }],
+      "title": "Operadora 2 - Upload",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 10 },
+      "id": 101,
+      "title": "Comparativo de Rapidez e Estabilidade",
+      "type": "row"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2, "spanNulls": false },
+          "unit": "ms"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 11 },
+      "id": 6,
+      "options": { "legend": { "calcs": ["min", "mean", "max", "last"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        { "expr": "isp_probe_latency_ms{wan=\"wan1\"}", "legendFormat": "Operadora 1 (Tempo de Resposta)", "refId": "A" },
+        { "expr": "isp_probe_latency_ms{wan=\"wan2\"}", "legendFormat": "Operadora 2 (Tempo de Resposta)", "refId": "B" }
+      ],
+      "title": "Tempo de Resposta (Quanto menor, mais rápida)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2, "spanNulls": false },
+          "unit": "ms"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 11 },
+      "id": 7,
+      "options": { "legend": { "calcs": ["min", "mean", "max", "last"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        { "expr": "isp_probe_jitter_ms{wan=\"wan1\"}", "legendFormat": "Operadora 1 (Oscilação)", "refId": "A" },
+        { "expr": "isp_probe_jitter_ms{wan=\"wan2\"}", "legendFormat": "Operadora 2 (Oscilação)", "refId": "B" }
+      ],
+      "title": "Estabilidade da Conexão (Quanto menor a oscilação, mais estável)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "stepAfter", "lineWidth": 2 },
+          "max": 100,
+          "min": 0,
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 0, "y": 19 },
+      "id": 8,
+      "options": { "legend": { "calcs": ["mean", "max", "last"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        { "expr": "isp_probe_packet_loss_percent{wan=\"wan1\"}", "legendFormat": "Operadora 1 (Falhas)", "refId": "A" },
+        { "expr": "isp_probe_packet_loss_percent{wan=\"wan2\"}", "legendFormat": "Operadora 2 (Falhas)", "refId": "B" }
+      ],
+      "title": "Falhas e Perda de Conexão (%)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "drawStyle": "line", "lineInterpolation": "smooth", "lineWidth": 2 },
+          "max": 100,
+          "min": 0,
+          "unit": "none"
+        }
+      },
+      "gridPos": { "h": 7, "w": 12, "x": 12, "y": 19 },
+      "id": 9,
+      "options": { "legend": { "calcs": ["min", "mean", "last"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        { "expr": "isp_health_score{wan=\"wan1\"}", "legendFormat": "Operadora 1 (Nota)", "refId": "A" },
+        { "expr": "isp_health_score{wan=\"wan2\"}", "legendFormat": "Operadora 2 (Nota)", "refId": "B" }
+      ],
+      "title": "Histórico da Nota Geral de Qualidade (0 a 100)",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["network", "failover", "isp"],
+  "time": { "from": "now-30m", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "Painel de Qualidade das Conexões de Internet",
+  "uid": "isp-monitoring-overview",
+  "version": 3
+}
