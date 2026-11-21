@@ -10,11 +10,14 @@ Sistema desenvolvido para monitorar individualmente duas conexões de internet r
   - Destinos da **Operadora 1 (WAN 1)** forçados exclusivamente pela interface `WAN`.
   - Destinos da **Operadora 2 (WAN 2)** forçados exclusivamente pela interface `WAN/LAN1`.
   - Servidores dedicados de teste de velocidade mapeados separadamente para cada operadora.
-- **Motor de Monitoramento (`net-monitor`):**
+- **Motor de Monitoramento e Failover (`net-monitor`):**
   - Testes contínuos de resposta (Ping a cada 10 segundos).
   - Cálculo de estabilidade (Jitter RFC 3550) e perda de pacotes.
   - Teste periódico de velocidade real (Download e Upload).
   - Algoritmo de cálculo de pontuação (Health Score 0-100) com histerese e proteção contra flapping.
+  - **Fase 2 - Failover Automático Inteligente:**
+    - **Avaliação a cada 1 hora:** avalia a conexão com melhor desempenho sustentado e altera dinamicamente a rota principal (`ROUTE_DEFAULT`) no hardware do ER605, salvando permanentemente em Flash.
+    - **Proteção de Emergência:** caso a operadora ativa sofra queda repentina (>80% perda ou fora do ar por 30s), o sistema comuta imediatamente para a conexão reserva, sem esperar a virada da hora.
   - Exposição de métricas para o Prometheus.
 - **Armazenamento de Métricas (`prometheus`):**
   - Coleta automática a cada 5 segundos com retenção histórica.

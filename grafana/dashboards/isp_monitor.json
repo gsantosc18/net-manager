@@ -114,19 +114,38 @@
         "defaults": {
           "color": { "mode": "thresholds" },
           "mappings": [
-            { "options": { "0": { "color": "text", "text": "Operadora 2 (Melhor)" }, "1": { "color": "blue", "text": "Operadora 1 (Melhor)" } }, "type": "value" }
+            { "options": { "0": { "color": "green", "text": "Operadora 2 (Ativa)" }, "1": { "color": "green", "text": "Operadora 1 (Ativa)" } }, "type": "value" }
           ],
           "thresholds": {
             "mode": "absolute",
-            "steps": [{ "color": "blue", "value": null }]
+            "steps": [{ "color": "green", "value": null }]
           }
         }
       },
-      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 1 },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
       "id": 5,
       "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "textMode": "auto" },
-      "targets": [{ "expr": "isp_recommended_primary{wan=\"wan1\"}", "legendFormat": "Recomendada", "refId": "A" }],
-      "title": "Melhor Conexão no Momento",
+      "targets": [{ "expr": "isp_active_router_primary{wan=\"wan1\"}", "legendFormat": "Ativa no ER605", "refId": "A" }],
+      "title": "Rota Ativa no Roteador (ER605)",
+      "type": "stat"
+    },
+    {
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "id": 6,
+      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "textMode": "auto" },
+      "targets": [{ "expr": "isp_next_hourly_eval_seconds", "legendFormat": "Próxima Avaliação", "refId": "A" }],
+      "title": "Próxima Avaliação (1h)",
       "type": "stat"
     },
     {

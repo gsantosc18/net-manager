@@ -21,6 +21,14 @@ class MonitorConfig:
     flapping_min_score_diff: float = float(os.getenv("FLAPPING_MIN_SCORE_DIFF", "5.0"))
     flapping_confirmation_cycles: int = int(os.getenv("FLAPPING_CONFIRM_CYCLES", "3"))
 
+    # Configurações do Roteador ER605 e Failover Automático
+    er605_host: str = os.getenv("ER605_HOST", "192.168.10.1")
+    er605_user: str = os.getenv("ER605_USER", "myhouse")
+    er605_pass: str = os.getenv("ER605_PASS", "24865310@Asd")
+    failover_enabled: bool = os.getenv("FAILOVER_ENABLED", "true").lower() == "true"
+    failover_interval_seconds: int = int(os.getenv("FAILOVER_INTERVAL", "3600"))  # Avaliação a cada 1 hora
+    emergency_failover_enabled: bool = os.getenv("EMERGENCY_FAILOVER", "true").lower() == "true"
+
     wans: Dict[str, WANConfig] = field(default_factory=lambda: {
         "wan1": WANConfig(
             id="wan1",

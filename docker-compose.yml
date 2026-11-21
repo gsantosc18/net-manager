@@ -19,6 +19,12 @@ services:
       - SPEEDTEST_INTERVAL=1800
       - FLAPPING_MIN_SCORE_DIFF=5.0
       - FLAPPING_CONFIRM_CYCLES=3
+      - ER605_HOST=192.168.10.1
+      - ER605_USER=myhouse
+      - ER605_PASS=24865310@Asd
+      - FAILOVER_ENABLED=true
+      - FAILOVER_INTERVAL=3600
+      - EMERGENCY_FAILOVER=true
     networks:
       - net-monitor-network
 
