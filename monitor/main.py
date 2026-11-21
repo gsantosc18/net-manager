@@ -186,6 +186,7 @@ def delayed_initial_speedtest():
 def init_router_state():
     global current_active_router_wan
     try:
+        er605.ensure_online_detection_always_on()
         active = er605.get_active_primary_wan()
         if active:
             current_active_router_wan = active

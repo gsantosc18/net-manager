@@ -198,3 +198,39 @@ class ER605Controller:
 
         logger.info(f"✅ ROTA PRINCIPAL NO ER605 ALTERADA COM SUCESSO PARA {target_wan.upper()} ({wan_label})!")
         return True
+
+    def ensure_online_detection_always_on(self) -> bool:
+        """
+        Garante que o Online Detection do ER605 esteja em 'always_on' para todas as portas WAN.
+        Isso impede que o roteador considere uma WAN offline devido a conflitos de rota do teste interno.
+        """
+        resp = self._api_post("/admin/online?form=online", {"method": "get"})
+        if not resp or resp.get("error_code") != "0":
+            return False
+
+        rules = resp.get("result", [])
+        modified = False
+        for i, rule in enumerate(rules):
+            if rule.get("mode") != "always_on":
+                new_rule = dict(rule)
+                new_rule["mode"] = "always_on"
+                new_rule["gateway"] = "0.0.0.0"
+                new_rule["dns"] = "0.0.0.0"
+                new_rule["enable"] = "on"
+                payload = {
+                    "method": "set",
+                    "params": {
+                        "index": i,
+                        "old": rule,
+                        "new": new_rule,
+                        "key": f"key-{i}"
+                    }
+                }
+                res = self._api_post("/admin/online?form=online", payload)
+                if res and res.get("error_code") == "0":
+                    modified = True
+
+        if modified:
+            self._api_post("/userconfig?form=cfg_save", {"method": "set", "id": 1})
+            logger.info("Online Detection do ER605 configurado para 'always_on' com sucesso.")
+        return True
