@@ -36,20 +36,24 @@ class HealthScorer:
         self.last_switch_timestamp: float = 0.0
         self.cooldown_seconds: float = 60.0  # Mínimo 1 minuto entre recomendações de mudança
 
-    def calculate_instant_score(self, ping: PingResult, download_mbps: Optional[float] = None) -> float:
+    def calculate_instant_score(
+        self,
+        ping: PingResult,
+        download_mbps: Optional[float] = None,
+        upload_mbps: Optional[float] = None
+    ) -> float:
         """
         Calcula a pontuação de qualidade instantânea de 0.0 a 100.0.
-        Fórmula ponderada:
-        - Disponibilidade: 100% ou 0%
-        - Perda de Pacotes (peso 40%): penalidade exponencial
-        - Latência (peso 35%): pontuação proporcional (0 a 100)
-        - Jitter (peso 25%): pontuação proporcional (0 a 100)
+        Modelo Equilibrado (Aprovado pelo Usuário):
+        - Perda de Pacotes (peso 30%): penalidade exponencial
+        - Latência (peso 25%): pontuação proporcional (0 a 100)
+        - Jitter/Oscilação (peso 20%): pontuação proporcional (0 a 100)
+        - Velocidade Real (peso 25%): Download (75%) e Upload (25%)
         """
         if not ping.is_available or ping.packet_loss_pct >= 95.0:
             return 0.0
 
         # 1. Componente de Perda de Pacotes (0 a 100)
-        # 0% perda = 100 pts; 1% perda = 80 pts; 5% perda = 20 pts; >=10% = 0 pts
         loss = ping.packet_loss_pct
         if loss == 0.0:
             score_loss = 100.0
@@ -61,7 +65,6 @@ class HealthScorer:
             score_loss = 0.0
 
         # 2. Componente de Latência (0 a 100)
-        # <= 15ms = 100 pts; 50ms = 70 pts; 100ms = 35 pts; >= 180ms = 0 pts
         lat = ping.latency_avg_ms
         if lat <= 15.0:
             score_latency = 100.0
@@ -72,8 +75,7 @@ class HealthScorer:
         else:
             score_latency = max(0.0, 15.0 - ((lat - 150.0) * 0.5))
 
-        # 3. Componente de Jitter (0 a 100)
-        # <= 3ms = 100 pts; 10ms = 70 pts; 25ms = 25 pts; >= 40ms = 0 pts
+        # 3. Componente de Jitter / Estabilidade (0 a 100)
         jit = ping.jitter_ms
         if jit <= 3.0:
             score_jitter = 100.0
@@ -84,11 +86,53 @@ class HealthScorer:
         else:
             score_jitter = 0.0
 
-        instant_score = (score_loss * 0.40) + (score_latency * 0.35) + (score_jitter * 0.25)
+        # 4. Componente de Velocidade Real (Download e Upload)
+        if download_mbps is not None and download_mbps > 0:
+            # Download
+            if download_mbps >= 300.0:
+                score_down = 100.0
+            elif download_mbps >= 200.0:
+                score_down = 90.0 + ((download_mbps - 200.0) * 0.1)
+            elif download_mbps >= 100.0:
+                score_down = 75.0 + ((download_mbps - 100.0) * 0.15)
+            elif download_mbps >= 50.0:
+                score_down = 50.0 + ((download_mbps - 50.0) * 0.5)
+            elif download_mbps >= 20.0:
+                score_down = 25.0 + ((download_mbps - 20.0) * 0.83)
+            else:
+                score_down = max(0.0, download_mbps * 1.25)
+
+            # Upload
+            if upload_mbps is not None and upload_mbps > 0:
+                if upload_mbps >= 150.0:
+                    score_up = 100.0
+                elif upload_mbps >= 100.0:
+                    score_up = 85.0 + ((upload_mbps - 100.0) * 0.3)
+                elif upload_mbps >= 50.0:
+                    score_up = 65.0 + ((upload_mbps - 50.0) * 0.4)
+                elif upload_mbps >= 20.0:
+                    score_up = 40.0 + ((upload_mbps - 20.0) * 0.83)
+                else:
+                    score_up = max(0.0, upload_mbps * 2.0)
+                score_speed = (score_down * 0.75) + (score_up * 0.25)
+            else:
+                score_speed = score_down
+
+            # Ponderação completa (30% Perda, 25% Latência, 20% Jitter, 25% Velocidade)
+            instant_score = (
+                (score_loss * 0.30) +
+                (score_latency * 0.25) +
+                (score_jitter * 0.20) +
+                (score_speed * 0.25)
+            )
+        else:
+            # Fallback antes da primeira medição de velocidade (40% Perda, 35% Latência, 25% Jitter)
+            instant_score = (score_loss * 0.40) + (score_latency * 0.35) + (score_jitter * 0.25)
+
         return round(max(0.0, min(100.0, instant_score)), 2)
 
     def evaluate_wan(self, wan_id: str, wan_name: str, ping: PingResult, download_mbps: Optional[float] = None, upload_mbps: Optional[float] = None) -> QualityMetrics:
-        instant = self.calculate_instant_score(ping, download_mbps)
+        instant = self.calculate_instant_score(ping, download_mbps, upload_mbps)
         self.history[wan_id].append(instant)
         
         # Média móvel ponderada (valores mais recentes têm maior peso)
