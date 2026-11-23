@@ -399,11 +399,13 @@
             "steps": [
               {
                 "color": "#374151",
-                "value": null
+                "value": null,
+                "name": "Standby"
               },
               {
                 "color": "#10B981",
-                "value": 1
+                "value": 1,
+                "name": "Ativo (Principal)"
               }
             ]
           }
@@ -923,5 +925,5 @@
   "timezone": "browser",
   "title": "Painel de Qualidade das Conex\u00f5es de Internet",
   "uid": "isp-monitoring-overview",
-  "version": 5
+  "version": 6
 }
