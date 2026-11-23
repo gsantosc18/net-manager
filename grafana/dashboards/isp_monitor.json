@@ -377,36 +377,32 @@
           "color": {
             "mode": "thresholds"
           },
-          "custom": {
-            "fillOpacity": 85,
-            "lineWidth": 0
-          },
           "mappings": [
             {
+              "type": "value",
               "options": {
                 "0": {
-                  "color": "dark-gray",
+                  "color": "#374151",
                   "index": 0,
                   "text": "Standby"
                 },
                 "1": {
-                  "color": "green",
+                  "color": "#10B981",
                   "index": 1,
                   "text": "Ativo (Principal)"
                 }
-              },
-              "type": "value"
+              }
             }
           ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "dark-gray",
+                "color": "#374151",
                 "value": null
               },
               {
-                "color": "green",
+                "color": "#10B981",
                 "value": 1
               }
             ]
@@ -927,5 +923,5 @@
   "timezone": "browser",
   "title": "Painel de Qualidade das Conex\u00f5es de Internet",
   "uid": "isp-monitoring-overview",
-  "version": 4
+  "version": 5
 }
