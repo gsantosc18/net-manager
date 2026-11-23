@@ -73,7 +73,7 @@
       },
       "targets": [
         {
-          "expr": "topk(1, isp_probe_available{wan=\"wan1\"})",
+          "expr": "max by (wan) (isp_probe_available{wan=\"wan1\"})",
           "legendFormat": "Status",
           "refId": "A",
           "instant": true
@@ -130,7 +130,7 @@
       },
       "targets": [
         {
-          "expr": "topk(1, isp_health_score{wan=\"wan1\"})",
+          "expr": "max by (wan) (isp_health_score{wan=\"wan1\"})",
           "legendFormat": "Nota",
           "refId": "A",
           "instant": true
@@ -191,7 +191,7 @@
       },
       "targets": [
         {
-          "expr": "topk(1, isp_probe_available{wan=\"wan2\"})",
+          "expr": "max by (wan) (isp_probe_available{wan=\"wan2\"})",
           "legendFormat": "Status",
           "refId": "A",
           "instant": true
@@ -248,7 +248,7 @@
       },
       "targets": [
         {
-          "expr": "topk(1, isp_health_score{wan=\"wan2\"})",
+          "expr": "max by (wan) (isp_health_score{wan=\"wan2\"})",
           "legendFormat": "Nota",
           "refId": "A",
           "instant": true
@@ -305,7 +305,7 @@
       },
       "targets": [
         {
-          "expr": "topk(1, isp_active_router_primary{wan=\"wan1\"})",
+          "expr": "max by (wan) (isp_active_router_primary{wan=\"wan1\"})",
           "legendFormat": "Ativa no ER605",
           "refId": "A",
           "instant": true
@@ -431,12 +431,12 @@
       },
       "targets": [
         {
-          "expr": "isp_active_router_primary{wan=\"wan1\"}",
+          "expr": "max by (wan) (isp_active_router_primary{wan=\"wan1\"})",
           "legendFormat": "__WAN1_NAME__",
           "refId": "A"
         },
         {
-          "expr": "isp_active_router_primary{wan=\"wan2\"}",
+          "expr": "max by (wan) (isp_active_router_primary{wan=\"wan2\"})",
           "legendFormat": "__WAN2_NAME__",
           "refId": "B"
         }
@@ -493,13 +493,13 @@
       },
       "targets": [
         {
-          "expr": "avg_over_time(isp_active_router_primary{wan=\"wan1\"}[$__range]) * 100",
+          "expr": "avg_over_time((max by (wan) (isp_active_router_primary{wan=\"wan1\"}))[$__range:1m]) * 100",
           "instant": true,
           "legendFormat": "__WAN1_NAME__",
           "refId": "A"
         },
         {
-          "expr": "avg_over_time(isp_active_router_primary{wan=\"wan2\"}[$__range]) * 100",
+          "expr": "avg_over_time((max by (wan) (isp_active_router_primary{wan=\"wan2\"}))[$__range:1m]) * 100",
           "instant": true,
           "legendFormat": "__WAN2_NAME__",
           "refId": "B"
@@ -570,7 +570,7 @@
       },
       "targets": [
         {
-          "expr": "topk(1, isp_download_mbps{wan=\"wan1\"})",
+          "expr": "max by (wan) (isp_download_mbps{wan=\"wan1\"})",
           "legendFormat": "Download",
           "refId": "A",
           "instant": true
@@ -613,7 +613,7 @@
       },
       "targets": [
         {
-          "expr": "topk(1, isp_upload_mbps{wan=\"wan1\"})",
+          "expr": "max by (wan) (isp_upload_mbps{wan=\"wan1\"})",
           "legendFormat": "Upload",
           "refId": "A",
           "instant": true
@@ -656,7 +656,7 @@
       },
       "targets": [
         {
-          "expr": "topk(1, isp_download_mbps{wan=\"wan2\"})",
+          "expr": "max by (wan) (isp_download_mbps{wan=\"wan2\"})",
           "legendFormat": "Download",
           "refId": "A",
           "instant": true
@@ -699,7 +699,7 @@
       },
       "targets": [
         {
-          "expr": "topk(1, isp_upload_mbps{wan=\"wan2\"})",
+          "expr": "max by (wan) (isp_upload_mbps{wan=\"wan2\"})",
           "legendFormat": "Upload",
           "refId": "A",
           "instant": true
@@ -754,12 +754,12 @@
       },
       "targets": [
         {
-          "expr": "isp_probe_latency_ms{wan=\"wan1\"}",
+          "expr": "max by (wan) (isp_probe_latency_ms{wan=\"wan1\"} > 0)",
           "legendFormat": "__WAN1_NAME__ (Tempo de Resposta)",
           "refId": "A"
         },
         {
-          "expr": "isp_probe_latency_ms{wan=\"wan2\"}",
+          "expr": "max by (wan) (isp_probe_latency_ms{wan=\"wan2\"} > 0)",
           "legendFormat": "__WAN2_NAME__ (Tempo de Resposta)",
           "refId": "B"
         }
@@ -801,12 +801,12 @@
       },
       "targets": [
         {
-          "expr": "isp_probe_jitter_ms{wan=\"wan1\"}",
+          "expr": "max by (wan) (isp_probe_jitter_ms{wan=\"wan1\"})",
           "legendFormat": "__WAN1_NAME__ (Oscila\u00e7\u00e3o)",
           "refId": "A"
         },
         {
-          "expr": "isp_probe_jitter_ms{wan=\"wan2\"}",
+          "expr": "max by (wan) (isp_probe_jitter_ms{wan=\"wan2\"})",
           "legendFormat": "__WAN2_NAME__ (Oscila\u00e7\u00e3o)",
           "refId": "B"
         }
@@ -848,12 +848,12 @@
       },
       "targets": [
         {
-          "expr": "isp_probe_packet_loss_percent{wan=\"wan1\"}",
+          "expr": "max by (wan) (isp_probe_packet_loss_percent{wan=\"wan1\"})",
           "legendFormat": "__WAN1_NAME__ (Falhas)",
           "refId": "A"
         },
         {
-          "expr": "isp_probe_packet_loss_percent{wan=\"wan2\"}",
+          "expr": "max by (wan) (isp_probe_packet_loss_percent{wan=\"wan2\"})",
           "legendFormat": "__WAN2_NAME__ (Falhas)",
           "refId": "B"
         }
@@ -895,12 +895,12 @@
       },
       "targets": [
         {
-          "expr": "topk(1, isp_health_score{wan=\"wan1\"})",
+          "expr": "max by (wan) (isp_health_score{wan=\"wan1\"})",
           "legendFormat": "__WAN1_NAME__ (Nota)",
           "refId": "A"
         },
         {
-          "expr": "topk(1, isp_health_score{wan=\"wan2\"})",
+          "expr": "max by (wan) (isp_health_score{wan=\"wan2\"})",
           "legendFormat": "__WAN2_NAME__ (Nota)",
           "refId": "B"
         }
@@ -925,5 +925,5 @@
   "timezone": "browser",
   "title": "Painel de Qualidade das Conex\u00f5es de Internet",
   "uid": "isp-monitoring-overview",
-  "version": 6
+  "version": 7
 }
