@@ -19,7 +19,7 @@ class QualityMetrics:
     status_label: str  # "EXCELLENT", "GOOD", "DEGRADED", "OFFLINE"
 
 class HealthScorer:
-    def __init__(self, history_size: int = 12, min_score_diff: float = 5.0, confirm_cycles: int = 3):
+    def __init__(self, history_size: int = 12, min_score_diff: float = 3.0, confirm_cycles: int = 3):
         self.history_size = history_size
         self.min_score_diff = min_score_diff
         self.confirm_cycles = confirm_cycles
@@ -88,19 +88,21 @@ class HealthScorer:
 
         # 4. Componente de Velocidade Real (Download e Upload)
         if download_mbps is not None and download_mbps > 0:
-            # Download
-            if download_mbps >= 300.0:
+            # Download (Teto de 500 Mbps)
+            if download_mbps >= 500.0:
                 score_down = 100.0
+            elif download_mbps >= 350.0:
+                score_down = 85.0 + ((download_mbps - 350.0) * 0.1)
             elif download_mbps >= 200.0:
-                score_down = 90.0 + ((download_mbps - 200.0) * 0.1)
+                score_down = 70.0 + ((download_mbps - 200.0) * 0.1)
             elif download_mbps >= 100.0:
-                score_down = 75.0 + ((download_mbps - 100.0) * 0.15)
+                score_down = 50.0 + ((download_mbps - 100.0) * 0.2)
             elif download_mbps >= 50.0:
-                score_down = 50.0 + ((download_mbps - 50.0) * 0.5)
+                score_down = 30.0 + ((download_mbps - 50.0) * 0.4)
             elif download_mbps >= 20.0:
-                score_down = 25.0 + ((download_mbps - 20.0) * 0.83)
+                score_down = 15.0 + ((download_mbps - 20.0) * 0.5)
             else:
-                score_down = max(0.0, download_mbps * 1.25)
+                score_down = max(0.0, download_mbps * 0.75)
 
             # Upload
             if upload_mbps is not None and upload_mbps > 0:
